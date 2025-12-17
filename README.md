@@ -4,7 +4,7 @@ A dynamic pawn shop market system for FiveM with real supply & demand pricing.
 
 This script automatically determines what items players can sell based on their inventory, learns prices over time, and maintains persistent stock per pawn shop.
 
-Supports both **OX** and **QB** frameworks.
+Supports both **ESX** and **QB** frameworks.
 
 ---
 
