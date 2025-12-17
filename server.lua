@@ -5,65 +5,95 @@ local function clamp(n,a,b) return math.max(a, math.min(b, n)) end
 -- =========================
 -- STOCK + HISTORY HELPERS
 -- =========================
+-- Get the current stock for a given shop and item from the database.
+-- Returns 0 if not found or on error.
 local function getStock(shopId, item)
-  local row = MySQL.single.await(
-    'SELECT stock FROM pawnshop_stock WHERE shop_id = ? AND item = ?',
-    { shopId, item }
-  )
+  local status, row = pcall(function()
+    return MySQL.single.await(
+      'SELECT stock FROM pawnshop_stock WHERE shop_id = ? AND item = ?',
+      { shopId, item }
+    )
+  end)
+  if not status then
+    print(('Error in getStock: %s'):format(row))
+    return 0
+  end
   return row and row.stock or 0
 end
 
+-- Add or remove stock for a given shop and item. Handles both insert and update.
 local function addStock(shopId, item, delta)
-  MySQL.prepare.await([[
-    INSERT INTO pawnshop_stock (shop_id, item, stock)
-    VALUES (?, ?, ?)
-    ON DUPLICATE KEY UPDATE stock = GREATEST(stock + VALUES(stock), 0)
-  ]], { shopId, item, delta })
+  local status, err = pcall(function()
+    MySQL.prepare.await([[
+      INSERT INTO pawnshop_stock (shop_id, item, stock)
+      VALUES (?, ?, ?)
+      ON DUPLICATE KEY UPDATE stock = GREATEST(stock + VALUES(stock), 0)
+    ]], { shopId, item, delta })
+  end)
+  if not status then
+    print(('Error in addStock: %s'):format(err))
+  end
 end
 
+-- Add a transaction to the pawnshop history table. Used for both buy and sell actions.
 local function addHistory(shopId, item, action, unitPrice, qty)
-  -- use await so it’s consistent (and easier to debug)
-  MySQL.prepare.await([[
-    INSERT INTO pawnshop_history (shop_id, item, action, unit_price, qty)
-    VALUES (?, ?, ?, ?, ?)
-  ]], { shopId, item, action, unitPrice, qty })
+  local status, err = pcall(function()
+    MySQL.prepare.await([[
+      INSERT INTO pawnshop_history (shop_id, item, action, unit_price, qty)
+      VALUES (?, ?, ?, ?, ?)
+    ]], { shopId, item, action, unitPrice, qty })
+  end)
+  if not status then
+    print(('Error in addHistory: %s'):format(err))
+  end
 end
 
 -- =========================
 -- LEARNED BASE PRICE
 -- =========================
+-- Get the learned base price for an item based on sales history.
+-- Returns the average price if enough history exists, otherwise the default base price.
 local function getLearnedBase(item)
-  local row = MySQL.single.await([[
-    SELECT COUNT(*) c, AVG(unit_price) avgp
-    FROM pawnshop_history
-    WHERE item = ? AND action='sell'
-  ]], { item })
-
+  local status, row = pcall(function()
+    return MySQL.single.await([[
+      SELECT COUNT(*) c, AVG(unit_price) avgp
+      FROM pawnshop_history
+      WHERE item = ? AND action='sell'
+    ]], { item })
+  end)
+  if not status then
+    print(('Error in getLearnedBase: %s'):format(row))
+    return Config.Learning.DefaultBase, 0
+  end
   local c = row and row.c or 0
   if c >= Config.Learning.MinHistoryForLearned then
     return math.max(math.floor(row.avgp or Config.Learning.DefaultBase), 1), c
   end
-
   return Config.Learning.DefaultBase, c
 end
 
 -- =========================
 -- TIME-BASED JUNK CHECK (MySQL handles dates)
 -- =========================
+-- Check if an item is considered junk based on time since last sale.
 local function isTimeJunk(item)
   local days = tonumber(Config.JunkRules.MaxDaysWithoutSale or 0)
   if days <= 0 then return false end
 
-  local row = MySQL.single.await([[
-    SELECT DATEDIFF(NOW(), MAX(ts)) AS days_since
-    FROM pawnshop_history
-    WHERE item = ? AND action = 'sell'
-  ]], { item })
-
+  local status, row = pcall(function()
+    return MySQL.single.await([[ 
+      SELECT DATEDIFF(NOW(), MAX(ts)) AS days_since
+      FROM pawnshop_history
+      WHERE item = ? AND action = 'sell'
+    ]], { item })
+  end)
+  if not status then
+    print(('Error in isTimeJunk: %s'):format(row))
+    return false
+  end
   if not row or row.days_since == nil then
     return false -- never sold before, allow it (so it can be discovered)
   end
-
   return tonumber(row.days_since) > days
 end
 
