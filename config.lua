@@ -36,14 +36,14 @@ Config.Shops = {
   {
     id = 'davis',
     label = 'Davis Pawn',
-    coords = vec3(412.3, 314.1, 103.1),
+    coords = vector3(412.3, 314.1, 103.1),
     radius = 2.0,
     npc = { enabled = true, model = 'a_m_m_business_01', heading = 90.0 }
   },
   {
     id = 'sandy',
     label = 'Sandy Pawn',
-    coords = vec3(139.1, 3538.9, 35.0),
+    coords = vector3(139.1, 3538.9, 35.0),
     radius = 2.0,
     npc = { enabled = false }
   }
