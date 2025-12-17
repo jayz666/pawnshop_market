@@ -7,8 +7,7 @@ Config.Inventory = 'ox'   -- 'ox' or 'qb'
 Config.Target = 'ox'      -- 'ox' or 'qb'
 Config.Menu = 'ox'        -- 'ox' or 'qb'
 Config.Money = 'qb'       -- 'qb' or 'ox_item'
-Config.CurrencyItem = 'money' -- used only if Money='ox_item'
-Config.JunkRules.MaxDaysWithSale = 7
+
 
 -- Market tuning
 Config.BuyMarkup = 1.35
@@ -25,7 +24,8 @@ Config.Learning = {
 
 Config.JunkRules = {
   MinHistoryCount = 3, -- after X history rows, apply junk filter
-  MinSellUnitPrice = 5 -- if unit price below this and has enough history -> ignore
+  MinSellUnitPrice = 5, -- if unit price below this and has enough history -> ignore
+  MaxDaysWithSale = 7   -- moved here to avoid nil value error
 }
 
 -- Quantity presets
