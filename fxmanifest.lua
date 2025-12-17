@@ -1,7 +1,7 @@
 fx_version 'cerulean'
 game 'gta5'
 
-author 'ChatGPT'
+author 'Moorgaming'
 description 'Pawn Shop Market (AI pricing + SQL stock + OX/QB bridges)'
 version '5.0.0'
 lua54 'yes'
