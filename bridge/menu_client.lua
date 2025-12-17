@@ -6,6 +6,7 @@ local hasQbMenu = GetResourceState('qb-menu') == 'started'
 -- ======================
 -- NOTIFY
 -- ======================
+-- Notify the player using ox_lib or QB fallback
 function Menu.Notify(msg, kind)
     kind = kind or 'inform'
     if hasOxLib then
@@ -18,6 +19,7 @@ end
 -- ======================
 -- KEYBOARD INPUT (QB fallback)
 -- ======================
+-- QB fallback for keyboard input
 local function KeyboardInput(text)
     AddTextEntry('FMMC_KEY_TIP1', text)
     DisplayOnscreenKeyboard(1, 'FMMC_KEY_TIP1', '', '', '', '', '', 3)
@@ -28,8 +30,9 @@ end
 -- ======================
 -- CONFIRM DIALOG (OX + QB)
 -- ======================
+-- Show a confirmation dialog using ox_lib or QB fallback
 function Menu.Confirm(title, msg, cb)
-    -- OX
+    -- OX confirmation dialog
     if Bridge.Menu == 'ox' and lib then
         local result = lib.alertDialog({
             header = title,
@@ -45,7 +48,7 @@ function Menu.Confirm(title, msg, cb)
         return
     end
 
-    -- QB fallback
+    -- QB fallback confirmation (type YES)
     local res = KeyboardInput(msg .. ' (type YES)')
     if res and res:upper() == 'YES' then
         cb()

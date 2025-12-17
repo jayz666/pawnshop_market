@@ -2,6 +2,7 @@
 -- SHOP LOOKUP HELPER
 -- =========================
 local ShopIndex = {}
+local ShopPeds = {}
 
 CreateThread(function()
     for _, shop in pairs(Config.Shops) do
@@ -33,6 +34,9 @@ local function spawnNpc(shop)
     SetEntityInvincible(ped, true)
     FreezeEntityPosition(ped, true)
     SetBlockingOfNonTemporaryEvents(ped, true)
+
+    -- Store ped reference by shop id
+    ShopPeds[shop.id] = ped
 end
 
 -- =========================
@@ -44,17 +48,28 @@ CreateThread(function()
 
         Target.RegisterShop(shop, {
             sell = function(s)
+                TriggerEvent('pawn:FaceNpc', s.id)
                 TriggerServerEvent('pawn:ScanInventory', s.id, Inv.GetPlayerInventory())
             end,
 
             buy = function(s)
+                TriggerEvent('pawn:FaceNpc', s.id)
                 TriggerServerEvent('pawn:GetBuyList', s.id)
             end,
 
             stock = function(s)
+                TriggerEvent('pawn:FaceNpc', s.id)
                 TriggerServerEvent('pawn:GetStock', s.id)
             end
         })
+
+    -- Make the shop NPC face the player when interacting
+    RegisterNetEvent('pawn:FaceNpc', function(shopId)
+        local ped = ShopPeds[shopId]
+        if not ped or not DoesEntityExist(ped) then return end
+        local playerPed = PlayerPedId()
+        TaskTurnPedToFaceEntity(ped, playerPed, 1000)
+    end)
     end
 end)
 

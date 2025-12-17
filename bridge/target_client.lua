@@ -1,5 +1,7 @@
 Target = Target or {}
 
+
+-- Register pawnshop zone with ox_target
 local function addOxTarget(shop, handlers)
   exports.ox_target:addSphereZone({
     coords = shop.coords,
@@ -12,6 +14,8 @@ local function addOxTarget(shop, handlers)
   })
 end
 
+
+-- Register pawnshop zone with qb-target
 local function addQbTarget(shop, handlers)
   exports['qb-target']:AddCircleZone(
     ('pawn_%s'):format(shop.id),
@@ -29,6 +33,8 @@ local function addQbTarget(shop, handlers)
   )
 end
 
+
+-- Register a pawnshop with the appropriate target system
 function Target.RegisterShop(shop, handlers)
   if Bridge.Target == 'qb' then
     addQbTarget(shop, handlers)
