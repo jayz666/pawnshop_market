@@ -69,6 +69,22 @@ CreateThread(function()
         if not ped or not DoesEntityExist(ped) then return end
         local playerPed = PlayerPedId()
         TaskTurnPedToFaceEntity(ped, playerPed, 1000)
+
+        -- Play a random animation for the NPC
+        local anims = {
+            { dict = 'mp_common', name = 'givetake1_a' }, -- handover
+            { dict = 'amb@prop_human_bum_bin@idle_b', name = 'idle_d' }, -- inspect
+            { dict = 'anim@mp_player_intcelebrationmale@thumbs_up', name = 'thumbs_up' }, -- greeting
+            { dict = 'anim@mp_player_intincarbodhi@ps', name = 'idle_a' }, -- casual
+            { dict = 'anim@mp_player_intcelebrationmale@face_palm', name = 'face_palm' }, -- fun
+        }
+        local anim = anims[math.random(#anims)]
+        RequestAnimDict(anim.dict)
+        local timeout = 0
+        while not HasAnimDictLoaded(anim.dict) and timeout < 100 do Wait(10) timeout = timeout + 1 end
+        if HasAnimDictLoaded(anim.dict) then
+            TaskPlayAnim(ped, anim.dict, anim.name, 8.0, -8.0, 2000, 49, 0, false, false, false)
+        end
     end)
     end
 end)
